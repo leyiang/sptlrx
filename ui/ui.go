@@ -10,6 +10,7 @@ import (
 	"sptlrx/pool"
 	"sptlrx/services/local"
 	"strings"
+	"syscall"
 
 	tea "github.com/charmbracelet/bubbletea"
 	gloss "github.com/charmbracelet/lipgloss"
@@ -50,6 +51,17 @@ func setWindowTitle(title string) {
 	fmt.Print("\033]0;" + title + "\007")
 }
 
+func sendSignalParent(signal syscall.Signal) {
+	ppid := os.Getppid()
+	process, err := os.FindProcess(ppid)
+
+	if err != nil {
+		fmt.Println("Something wrong about ppid")
+	}
+
+	process.Signal(signal)
+}
+
 func (m *Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
@@ -81,7 +93,12 @@ func (m *Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 				"-e", "nvim", local.LocalPath,
 			).Start()
 
+		case "r":
+			sendSignalParent(syscall.SIGUSR1)
+			cmd = tea.Quit
+
 		case "q", "esc", "ctrl+c":
+			sendSignalParent(syscall.SIGUSR2)
 			cmd = tea.Quit
 
 		case "left":
