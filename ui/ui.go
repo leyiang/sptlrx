@@ -1,12 +1,14 @@
 package ui
 
 import (
-	"os"
 	"fmt"
+	"os"
+	"os/exec"
 	"runtime"
 	"sptlrx/config"
 	"sptlrx/lyrics"
 	"sptlrx/pool"
+	"sptlrx/services/local"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -44,6 +46,10 @@ func (m *Model) Init() tea.Cmd {
 	return tea.Batch(waitForUpdate(m.Channel), tea.HideCursor)
 }
 
+func setWindowTitle(title string) {
+	fmt.Print("\033]0;" + title + "\007")
+}
+
 func (m *Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
@@ -55,9 +61,7 @@ func (m *Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	case pool.Update:
 		m.state = msg
 
-		// set sptlrx window title
-		windowTitle := m.state.ID + " - sptlrx"
-		fmt.Print("\033]0;" + windowTitle + "\007")
+		setWindowTitle(m.state.ID + " - sptlrx")
 
 		if runtime.GOOS == "windows" {
 			w, h, err := term.GetSize(int(os.Stdout.Fd()))
@@ -69,6 +73,14 @@ func (m *Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch msg.String() {
+		case "e":
+			// add --class to open in new window
+			exec.Command(
+				"/home/yiang/apps/alacritty",
+				"--class", "EditLyricNvim",
+				"-e", "nvim", local.LocalPath,
+			).Start()
+
 		case "q", "esc", "ctrl+c":
 			cmd = tea.Quit
 
@@ -118,15 +130,15 @@ func (m *Model) View() string {
 		)
 	}
 	if len(m.state.Lines) == 0 {
-        placeholder := "<" + m.state.ID + ">" + "\n\nNo lyrics found"
+		placeholder := "<" + m.state.ID + ">" + "\n\nNo lyrics found"
 
-        return gloss.PlaceVertical(
-            m.h, gloss.Center,
-            m.styleAfter.
-                Align(gloss.Center).
-                Width(m.w).
-                Render( placeholder ),
-        )
+		return gloss.PlaceVertical(
+			m.h, gloss.Center,
+			m.styleAfter.
+				Align(gloss.Center).
+				Width(m.w).
+				Render(placeholder),
+		)
 	}
 
 	curLine := m.styleCurrent.

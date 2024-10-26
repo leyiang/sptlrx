@@ -38,6 +38,8 @@ type Client struct {
 	index []*file
 }
 
+var LocalPath string
+
 func (c *Client) Lyrics(id, query string) ([]lyrics.Line, error) {
 	f := c.findFile(query)
 	if f == nil {
@@ -50,6 +52,7 @@ func (c *Client) Lyrics(id, query string) ([]lyrics.Line, error) {
 	}
 	defer reader.Close()
 
+	LocalPath = f.Path
 	return parseLrcFile(reader), nil
 }
 
