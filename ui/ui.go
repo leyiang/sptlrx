@@ -87,10 +87,12 @@ func (m *Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "e":
 			// add --class to open in new window
+			var line = fmt.Sprintf("+%d", m.state.Index+1)
+
 			exec.Command(
 				"/home/yiang/apps/alacritty",
 				"--class", "EditLyricNvim",
-				"-e", "nvim", local.LocalPath,
+				"-e", "nvim", line, local.LocalPath,
 			).Start()
 
 		case "r":
