@@ -97,6 +97,12 @@ func (m *Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 			sendSignalParent(syscall.SIGUSR1)
 			cmd = tea.Quit
 
+		case "d":
+			exec.Command(
+				"/home/yiang/apps/alacritty",
+				"-e", "getLyrics",
+			).Start()
+
 		case "q", "esc", "ctrl+c":
 			sendSignalParent(syscall.SIGUSR2)
 			cmd = tea.Quit
